@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ttt-reward-models"
+version = "0.3.0"
+description = "Reward-guided and latent-matched SFT workflows for one-step SDXL Turbo models."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "torch",
+  "torchvision",
+  "diffusers",
+  "transformers",
+  "matplotlib",
+  "tqdm",
+  "accelerate",
+  "safetensors",
+  "sentencepiece",
+  "Pillow",
+  "huggingface_hub",
+  "modelscope",
+  "image-reward",
+  "hpsv2",
+  "timm",
+  "fairscale",
+  "clint",
+  "requests",
+  "clip>=0.2.0",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[[tool.uv.index]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
