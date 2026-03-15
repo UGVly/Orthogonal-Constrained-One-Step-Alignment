@@ -1,5 +1,5 @@
 # Orthogonal-Constrained One-Step Alignment
-
+<!-- 
 A cleaned project layout for **test-time orthogonal noise optimization** on **SDXL Turbo**, now extended with a **latent-matched SFT** workflow for one-step generators.
 
 Besides the original reward-driven test-time optimization backends, this repo now includes a practical version of the idea:
@@ -27,7 +27,7 @@ The project now has three connected pieces for the new idea:
 There is also an **EM-style alternating loop**:
 
 - E-step: reassign matched noises with the current model
-- M-step: fine-tune on the updated matched-noise dataset
+- M-step: fine-tune on the updated matched-noise dataset -->
 
 ## Project layout
 
