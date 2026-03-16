@@ -1,4 +1,4 @@
-# TTT Reward Models
+# Orthogonal-Constrained One-Step Alignment
 
 A cleaned project layout for **test-time orthogonal noise optimization** on **SDXL Turbo**, now extended with a **latent-matched SFT** workflow for one-step generators.
 
@@ -7,6 +7,14 @@ Besides the original reward-driven test-time optimization backends, this repo no
 > direct one-step SFT on high-quality `(image, prompt)` pairs is often unstable, so first assign the most compatible latent noise to each target image, then fine-tune on those matched noises instead of random noises.
 
 That gives you a cleaner supervision signal and usually behaves much better than naive random-noise SFT.
+
+
+
+## Setup
+
+```
+uv sync
+```
 
 ## What is new in this version
 
@@ -117,7 +125,9 @@ python -m ttt_reward_models.cli_sdxl_reward \
   --prompt "a cinematic portrait of a girl in soft light, highly detailed" \
   --reward_type clip \
   --model_id ./models/sdxl-turbo \
-  --clip_local_dir ./models/CLIP-ViT-L-14
+  --clip_local_dir ./models/CLIP-ViT-L-14 \
+  --output_dir outputs/test_time_oft_noise_clip \
+  --patch_size 8
 ```
 
 ```bash
@@ -126,7 +136,10 @@ python -m ttt_reward_models.cli_sdxl_reward \
   --reward_type hybrid \
   --model_id ./models/sdxl-turbo \
   --clip_local_dir ./models/CLIP-ViT-L-14 \
-  --aesthetic_ckpt ./models/Aesthetic/sac+logos+ava1-l14-linearMSE.pth
+  --aesthetic_ckpt ./models/Aesthetic/sac+logos+ava1-l14-linearMSE.pth \
+  --output_dir outputs/test_time_oft_noise_clip \
+  --patch_size 8
+
 ```
 
 ### PickScore

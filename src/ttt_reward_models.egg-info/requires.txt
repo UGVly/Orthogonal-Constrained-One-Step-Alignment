@@ -1,7 +1,7 @@
 torch
 torchvision
 diffusers
-transformers<=4.55.4
+transformers
 matplotlib
 tqdm
 accelerate
@@ -16,4 +16,3 @@ timm
 fairscale
 clint
 requests
-clip>=0.2.0
