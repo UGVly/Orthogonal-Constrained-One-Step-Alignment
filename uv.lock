@@ -346,12 +346,6 @@ dependencies = [
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/3d/b4/41ecb1516f1ba728f39ee7062b9dac1352d39823f513bb6f9e8aeb86e26d/clint-0.5.1.tar.gz", hash = "sha256:05224c32b1075563d0b16d0015faaf9da43aa214e4a2140e51f08789e7a4c5aa", size = 29355, upload-time = "2015-08-25T16:11:19.237Z" }
 
 [[package]]
-name = "clip"
-version = "0.2.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
-sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/58/dc/12bf8888635ade4de57565dca75909a809d1da6ec341eacd546028a73ab9/clip-0.2.0.tar.gz", hash = "sha256:c0913fbb1a0eac8a20da4a5c890d454b081305f64429c0aa5b652164450253b8", size = 5453, upload-time = "2013-01-20T00:55:37.748Z" }
-
-[[package]]
 name = "colorama"
 version = "0.4.6"
 source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
@@ -1831,13 +1825,31 @@ wheels = [
 ]
 
 [[package]]
+name = "open-clip-torch"
+version = "2.32.0"
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+dependencies = [
+    { name = "ftfy" },
+    { name = "huggingface-hub" },
+    { name = "regex" },
+    { name = "safetensors" },
+    { name = "timm" },
+    { name = "torch" },
+    { name = "torchvision" },
+    { name = "tqdm" },
+]
+sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/6d/7b/fd38dfd522968135dce71d0b543c2ae776f9c8e27df6ad46b63bab09eef7/open_clip_torch-2.32.0.tar.gz", hash = "sha256:0220bc111162527eb738c1fe20dbfd6ea45dfe44726b54a4de18d3945d8f2f00", size = 1491248, upload-time = "2025-04-05T21:55:24.51Z" }
+wheels = [
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/32/f9/0458745c1d299411161ee3b6c32228a3de0be1d8497d779fd7f17a8e96aa/open_clip_torch-2.32.0-py3-none-any.whl", hash = "sha256:80b35b43e37afc2b6173aa5ab0ad68744ab3a3211e624f72dfe743a162707637", size = 1528783, upload-time = "2025-04-05T21:55:22.967Z" },
+]
+
+[[package]]
 name = "orthoalign"
 version = "0.3.0"
 source = { editable = "." }
 dependencies = [
     { name = "accelerate" },
     { name = "clint" },
-    { name = "clip" },
     { name = "diffusers" },
     { name = "fairscale" },
     { name = "hpsv2" },
@@ -1845,6 +1857,7 @@ dependencies = [
     { name = "image-reward" },
     { name = "matplotlib" },
     { name = "modelscope" },
+    { name = "open-clip-torch" },
     { name = "pillow" },
     { name = "requests" },
     { name = "safetensors" },
@@ -1860,7 +1873,6 @@ dependencies = [
 requires-dist = [
     { name = "accelerate" },
     { name = "clint" },
-    { name = "clip", specifier = ">=0.2.0" },
     { name = "diffusers" },
     { name = "fairscale" },
     { name = "hpsv2" },
@@ -1868,6 +1880,7 @@ requires-dist = [
     { name = "image-reward" },
     { name = "matplotlib" },
     { name = "modelscope" },
+    { name = "open-clip-torch", specifier = ">=2.32.0" },
     { name = "pillow" },
     { name = "requests" },
     { name = "safetensors" },
@@ -1876,7 +1889,7 @@ requires-dist = [
     { name = "torch" },
     { name = "torchvision" },
     { name = "tqdm" },
-    { name = "transformers", specifier = "<=4.55.4" },
+    { name = "transformers" },
 ]
 
 [[package]]

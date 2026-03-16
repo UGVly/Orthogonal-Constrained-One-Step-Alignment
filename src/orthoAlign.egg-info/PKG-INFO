@@ -1,3 +1,29 @@
+Metadata-Version: 2.4
+Name: orthoAlign
+Version: 0.3.0
+Summary: Reward-guided and latent-matched SFT workflows for one-step SDXL Turbo models.
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: torch
+Requires-Dist: torchvision
+Requires-Dist: diffusers
+Requires-Dist: transformers
+Requires-Dist: matplotlib
+Requires-Dist: tqdm
+Requires-Dist: accelerate
+Requires-Dist: safetensors
+Requires-Dist: sentencepiece
+Requires-Dist: Pillow
+Requires-Dist: huggingface_hub
+Requires-Dist: modelscope
+Requires-Dist: image-reward
+Requires-Dist: hpsv2
+Requires-Dist: timm
+Requires-Dist: fairscale
+Requires-Dist: clint
+Requires-Dist: requests
+Requires-Dist: open-clip-torch>=2.32.0
+
 # Orthogonal-Constrained One-Step Alignment
 
 A cleaned project layout for **test-time orthogonal noise optimization** on **SDXL Turbo**, now extended with a **latent-matched SFT** workflow for one-step generators.
@@ -426,16 +452,3 @@ The toy branches now use **orthogonal latent assignment** as well:
 - use `z = Q eps` for matched-noise assignment
 
 By default, the assigned-noise builders now operate on the **training split**. Use `--test_split` only when you explicitly want a held-out/demo assignment set.
-
-
-## Debug
-
-If lose the follow material:
-`.../site-packages/hpsv2/src/open_clip/bpe_simple_vocab_16e6.txt.gz`
-
-
-```bash
-cp \
-./.venv/lib/python3.13/site-packages/open_clip/bpe_simple_vocab_16e6.txt.gz \
-./.venv/lib/python3.13/site-packages/hpsv2/src/open_clip/
-```

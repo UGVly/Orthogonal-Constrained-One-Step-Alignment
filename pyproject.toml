@@ -27,6 +27,7 @@ dependencies = [
   "fairscale",
   "clint",
   "requests",
+  "open-clip-torch>=2.32.0",
 ]
 
 [tool.setuptools]
@@ -34,3 +35,7 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[[tool.uv.index]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
