@@ -1,7 +1,5 @@
 import argparse
 
-from .runners_sft import run_assign_matched_noise_sft
-
 
 def main() -> None:
     parser = argparse.ArgumentParser(description='Assign a matched noise to a target image for one-step SDXL Turbo SFT.')
@@ -25,6 +23,7 @@ def main() -> None:
     parser.add_argument('--save_every', type=int, default=1)
     parser.add_argument('--print_eigs_every', type=int, default=1)
     args = parser.parse_args()
+    from .runners_sft import run_assign_matched_noise_sft
 
     run_assign_matched_noise_sft(
         prompt=args.prompt,

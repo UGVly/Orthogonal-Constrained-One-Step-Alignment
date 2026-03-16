@@ -115,9 +115,7 @@ def _run_test_time_oft_core(
         reward_dict = reward_model(images)
         reward = reward_dict['reward'].mean()
 
-        _ = noise_l2_weight
-        _ = drift_reg
-        loss = -reward
+        loss = -reward + noise_l2_weight * drift_reg
 
         if not torch.isfinite(loss):
             raise RuntimeError(

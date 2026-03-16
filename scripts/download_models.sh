@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Download all model assets into the project-local ./models directory.
+# Download model assets into the project-local ./models directory.
 # Default layout:
 #   models/
 #     sdxl-turbo/
@@ -34,7 +34,6 @@ SKIP_IMAGEREWARD=0
 SKIP_HPSV2=0
 SKIP_CLIP=0
 SKIP_AESTHETIC=0
-
 AESTHETIC_VARIANT="sac+logos+ava1-l14-linearMSE"
 
 usage() {
@@ -230,13 +229,11 @@ if [[ -n "${MODELSCOPE_API_TOKEN:-}" ]]; then
   printf '%s' "$MODELSCOPE_API_TOKEN" > "$HOME/.modelscope/api_token"
 fi
 
-# 1) SDXL-Turbo (prefer ModelScope)
 if [[ $SKIP_SDXL_TURBO -eq 0 ]] && should_download "sdxl-turbo"; then
   log "Downloading sdxl-turbo -> $MODELS_DIR/sdxl-turbo"
   ms_download_model "AI-ModelScope/sdxl-turbo" "$MODELS_DIR/sdxl-turbo"
 fi
 
-# 2) Hyper-SD 1-step for SD1.5 (official HF file)
 if [[ $SKIP_HYPER_SD -eq 0 ]] && should_download "Hyper-SD15-1step"; then
   log "Downloading Hyper-SD15-1step -> $MODELS_DIR/Hyper-SD15-1step"
   need_any_hf_cli
@@ -246,20 +243,17 @@ if [[ $SKIP_HYPER_SD -eq 0 ]] && should_download "Hyper-SD15-1step"; then
     --include "comfyui/Hyper-SD15-1step-unified-lora-workflow.json"
 fi
 
-# 3) PickScore v1 (full snapshot for local from_pretrained)
 if [[ $SKIP_PICKSCORE -eq 0 ]] && should_download "PickScore_v1"; then
   log "Downloading PickScore_v1 -> $MODELS_DIR/PickScore_v1"
   need_any_hf_cli
   hf_download_repo "yuvalkirstain/PickScore_v1" "$MODELS_DIR/PickScore_v1"
 fi
 
-# 4) ImageReward (prefer ModelScope)
 if [[ $SKIP_IMAGEREWARD -eq 0 ]] && should_download "ImageReward"; then
   log "Downloading ImageReward -> $MODELS_DIR/ImageReward"
   ms_download_model "ZhipuAI/ImageReward" "$MODELS_DIR/ImageReward"
 fi
 
-# 5) HPSv2 (official HF checkpoint)
 if [[ $SKIP_HPSV2 -eq 0 ]] && should_download "HPSv2"; then
   log "Downloading HPSv2 ($HPS_VERSION) -> $MODELS_DIR/HPSv2"
   need_any_hf_cli
@@ -270,19 +264,17 @@ if [[ $SKIP_HPSV2 -eq 0 ]] && should_download "HPSv2"; then
   hf_download_repo "xswu/HPSv2" "$MODELS_DIR/HPSv2" --include "$HPS_FILE"
 fi
 
-# 6) CLIP ViT-L/14
 if [[ $SKIP_CLIP -eq 0 ]] && should_download "CLIP-ViT-L-14"; then
   log "Downloading CLIP ViT-L/14 -> $MODELS_DIR/CLIP-ViT-L-14"
   need_any_hf_cli
   hf_download_repo "openai/clip-vit-large-patch14" "$MODELS_DIR/CLIP-ViT-L-14"
 fi
 
-# 7) Aesthetic predictor checkpoint
 if [[ $SKIP_AESTHETIC -eq 0 ]] && should_download "Aesthetic"; then
   log "Downloading Aesthetic predictor ($AESTHETIC_VARIANT) -> $MODELS_DIR/Aesthetic"
   need_any_downloader
   AESTHETIC_FILE="${AESTHETIC_VARIANT}.pth"
-  AESTHETIC_URL="https://raw.githubusercontent.com/christophschuhmann/improved-aesthetic-predictor/main/${AESTHETIC_FILE}"
+  AESTHETIC_URL="https://github.com/christophschuhmann/improved-aesthetic-predictor/raw/main/${AESTHETIC_FILE}"
   mkdir -p "$MODELS_DIR/Aesthetic"
   download_url "$AESTHETIC_URL" "$MODELS_DIR/Aesthetic/$AESTHETIC_FILE"
 fi

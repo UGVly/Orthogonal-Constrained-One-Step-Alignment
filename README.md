@@ -1,6 +1,6 @@
-# Orthogonal-Constrained One-Step Alignment
+# TTT Reward Models
 
-It is a project layout for **test-time orthogonal noise optimization** on **SDXL Turbo**, now extended with a **latent-matched SFT** workflow for one-step generators.
+A cleaned project layout for **test-time orthogonal noise optimization** on **SDXL Turbo**, now extended with a **latent-matched SFT** workflow for one-step generators.
 
 Besides the original reward-driven test-time optimization backends, this repo now includes a practical version of the idea:
 
@@ -8,7 +8,6 @@ Besides the original reward-driven test-time optimization backends, this repo no
 
 That gives you a cleaner supervision signal and usually behaves much better than naive random-noise SFT.
 
-<!-- 
 ## What is new in this version
 
 The project now has three connected pieces for the new idea:
@@ -28,7 +27,7 @@ The project now has three connected pieces for the new idea:
 There is also an **EM-style alternating loop**:
 
 - E-step: reassign matched noises with the current model
-- M-step: fine-tune on the updated matched-noise dataset -->
+- M-step: fine-tune on the updated matched-noise dataset
 
 ## Project layout
 
@@ -91,28 +90,43 @@ models/
   PickScore_v1/
   ImageReward/
   HPSv2/
+  CLIP-ViT-L-14/
+  Aesthetic/
+    sac+logos+ava1-l14-linearMSE.pth
 ```
 
-## Reward-model assets inside the repo
+Common selective downloads:
 
-Some reward assets are also stored under:
-
-```text
-third_party_weights/
-  imagereward_modelscope/
-  hpsv2/
+```bash
+bash scripts/download_models.sh --only CLIP-ViT-L-14 --only Aesthetic
+bash scripts/download_models.sh --only ImageReward
+bash scripts/download_models.sh --only HPSv2 --hps-version v2.1
 ```
+
+The code now **prefers `models/` by default**. Older checkpoints under `third_party_weights/` are still recognized as a backward-compatible fallback.
 
 ## Original reward-driven one-step optimization
 
 ### CLIP / Aesthetic / Hybrid
+
+CLIP and aesthetic runs expect the local CLIP snapshot and, for `aesthetic` / `hybrid`, the MLP checkpoint too.
+If you used `bash scripts/download_models.sh`, the project-local defaults below will line up with the downloaded files.
 
 ```bash
 python -m ttt_reward_models.cli_sdxl_reward \
   --prompt "a cinematic portrait of a girl in soft light, highly detailed" \
   --reward_type clip \
   --model_id ./models/sdxl-turbo \
-  --patch_size 8
+  --clip_local_dir ./models/CLIP-ViT-L-14
+```
+
+```bash
+python -m ttt_reward_models.cli_sdxl_reward \
+  --prompt "a cinematic portrait of a girl in soft light, highly detailed" \
+  --reward_type hybrid \
+  --model_id ./models/sdxl-turbo \
+  --clip_local_dir ./models/CLIP-ViT-L-14 \
+  --aesthetic_ckpt ./models/Aesthetic/sac+logos+ava1-l14-linearMSE.pth
 ```
 
 ### PickScore
@@ -121,7 +135,7 @@ python -m ttt_reward_models.cli_sdxl_reward \
 python -m ttt_reward_models.cli_pickscore \
   --prompt "a cinematic portrait of a girl in soft light, highly detailed" \
   --model_id ./models/sdxl-turbo \
-  --patch_size 8
+  --pickscore_model_id ./models/PickScore_v1
 ```
 
 ### ImageReward
@@ -130,8 +144,8 @@ python -m ttt_reward_models.cli_pickscore \
 python -m ttt_reward_models.cli_imagereward \
   --prompt "a cinematic portrait of a girl in soft light, highly detailed" \
   --model_id ./models/sdxl-turbo \
-  --imagereward_auto_download \
-  --patch_size 8
+  --imagereward_model_path ./models/ImageReward/ImageReward.pt \
+  --imagereward_med_config_path ./models/ImageReward/med_config.json
 ```
 
 ### HPSv2
@@ -141,8 +155,7 @@ python -m ttt_reward_models.cli_hpsv2 \
   --prompt "a cinematic portrait of a girl in soft light, highly detailed" \
   --model_id ./models/sdxl-turbo \
   --hps_version v2.1 \
-  --hps_auto_download \
-  --patch_size 8
+  --hps_checkpoint_path ./models/HPSv2/HPS_v2.1_compressed.pt
 ```
 
 ## Noise-theory visualization
@@ -154,7 +167,7 @@ orthogonal_gaussian_init.png / .json
 orthogonal_gaussian_final.png / .json
 ```
 
-These compare the original standard Gaussian latent noise with the orthogonally transformed noise `Q @ z`, showing that the Gaussian statistics are preserved to a very high degree.
+These compare the original standard Gaussian latent noise with the orthogonally transformed noise `Q @ z`. For a fixed orthogonal map, the Gaussian statistics are preserved up to numerical error. In the learned/data-dependent assignment setting, the geometry is still constrained to an orthogonal orbit, but the collected assigned latents should not be described as i.i.d. standard Gaussian without extra qualification.
 
 Standalone verification:
 
@@ -306,3 +319,97 @@ bash scripts/run_build_assigned_dataset_example.sh
 bash scripts/run_latent_matched_sft_example.sh
 bash scripts/run_em_latent_matched_sft_example.sh
 ```
+
+
+## MNIST latent-matched SFT demo
+
+I also added a lightweight MNIST version of the same idea so you can debug the full workflow quickly before moving back to SD/SDXL.
+
+### What is included
+
+- `python -m ttt_reward_models.cli_train_mnist_gan`
+  - trains a one-step class-conditional MNIST generator (GAN-style baseline)
+- `python -m ttt_reward_models.cli_build_mnist_assigned_noise_dataset`
+  - for each target digit image, optimizes a matched latent noise `z*`
+- `python -m ttt_reward_models.cli_train_mnist_latent_matched_sft`
+  - fine-tunes the generator on the assigned noises
+- `python -m ttt_reward_models.cli_train_mnist_direct_sft`
+  - direct random-noise SFT baseline for comparison
+- `python -m ttt_reward_models.cli_em_mnist_latent_matched_sft`
+  - EM-style alternation: assign -> SFT -> reassign
+
+### Recommended MNIST workflow
+
+```bash
+python -m ttt_reward_models.cli_train_mnist_gan   --output_dir outputs/mnist_gan   --epochs 10
+```
+
+```bash
+python -m ttt_reward_models.cli_build_mnist_assigned_noise_dataset   --generator_ckpt outputs/mnist_gan/mnist_gan_final.pt   --output_dir outputs/mnist_assigned_dataset   --max_items 256   --assign_steps 200
+```
+
+```bash
+python -m ttt_reward_models.cli_train_mnist_latent_matched_sft   --generator_ckpt outputs/mnist_gan/mnist_gan_final.pt   --manifest_path outputs/mnist_assigned_dataset/manifest.jsonl   --output_dir outputs/mnist_latent_matched_sft   --epochs 5   --preserve_weight 0.25
+```
+
+For a baseline comparison:
+
+```bash
+python -m ttt_reward_models.cli_train_mnist_direct_sft   --generator_ckpt outputs/mnist_gan/mnist_gan_final.pt   --output_dir outputs/mnist_direct_sft   --epochs 5
+```
+
+### Notes
+
+- The MNIST demo uses digit labels as the condition instead of text prompts.
+- Assigned-noise records are stored in a `manifest.jsonl` plus per-sample `noise.pt` files.
+- The latent-matched SFT stage includes a preserve loss against the frozen teacher generator.
+- This MNIST branch is meant as a fast algorithmic sanity-check, not as a replacement for the SDXL workflow.
+
+
+## Toy pipeline: MNIST and CIFAR-10 latent-matched SFT
+
+The repo also includes two lightweight toy branches so you can test the algorithmic idea without SDXL:
+
+- **MNIST**: grayscale 28x28 one-step conditional generator
+- **CIFAR-10**: RGB 32x32 one-step conditional generator
+
+Both branches support the same pattern:
+
+1. train a base one-step conditional generator
+2. assign a matched latent `z*` for each target image
+3. compare **direct random-noise SFT** vs **latent-matched SFT**
+4. optionally run an EM-style loop
+
+### MNIST quick start
+
+```bash
+python -m ttt_reward_models.cli_train_mnist_gan --output_dir outputs/mnist_gan --epochs 10
+python -m ttt_reward_models.cli_build_mnist_assigned_noise_dataset --generator_ckpt outputs/mnist_gan/mnist_gan_final.pt --output_dir outputs/mnist_assigned_dataset --max_items 256 --assign_steps 200
+python -m ttt_reward_models.cli_train_mnist_latent_matched_sft --generator_ckpt outputs/mnist_gan/mnist_gan_final.pt --manifest_path outputs/mnist_assigned_dataset/manifest.jsonl --output_dir outputs/mnist_latent_matched_sft --epochs 5 --preserve_weight 0.25
+```
+
+### CIFAR-10 quick start
+
+```bash
+python -m ttt_reward_models.cli_train_cifar_gan --output_dir outputs/cifar_gan --epochs 20
+python -m ttt_reward_models.cli_build_cifar_assigned_noise_dataset --generator_ckpt outputs/cifar_gan/cifar_gan_final.pt --output_dir outputs/cifar_assigned_dataset --max_items 512 --assign_steps 300
+python -m ttt_reward_models.cli_train_cifar_latent_matched_sft --generator_ckpt outputs/cifar_gan/cifar_gan_final.pt --manifest_path outputs/cifar_assigned_dataset/manifest.jsonl --output_dir outputs/cifar_latent_matched_sft --epochs 5 --preserve_weight 0.25
+```
+
+CIFAR also has:
+
+- `python -m ttt_reward_models.cli_train_cifar_direct_sft`
+- `python -m ttt_reward_models.cli_em_cifar_latent_matched_sft`
+
+and matching example scripts under `scripts/run_cifar_*.sh`.
+
+
+## MNIST / CIFAR toy branches
+
+The toy branches now use **orthogonal latent assignment** as well:
+
+- sample base noise `eps ~ N(0, I)`
+- optimize an orthogonal matrix `Q`
+- use `z = Q eps` for matched-noise assignment
+
+By default, the assigned-noise builders now operate on the **training split**. Use `--test_split` only when you explicitly want a held-out/demo assignment set.

@@ -15,7 +15,7 @@ from ttt_reward_models.paths import get_default_hpsv2_root, get_default_imagerew
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description='Download reward-model assets into the project-local third_party_weights directory.')
+    parser = argparse.ArgumentParser(description='Download reward-model assets into the project-local models directory (legacy third_party_weights paths are still recognized).')
     parser.add_argument('--which', type=str, default='all', choices=['all', 'imagereward', 'hpsv2'])
     parser.add_argument('--hps_version', type=str, default='v2.1', choices=['v2.0', 'v2.1'])
     parser.add_argument('--no_prefer_modelscope', action='store_true')

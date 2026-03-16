@@ -1,5 +1,5 @@
 Metadata-Version: 2.4
-Name: ttt-reward-models
+Name: orthoalign
 Version: 0.3.0
 Summary: Reward-guided and latent-matched SFT workflows for one-step SDXL Turbo models.
 Requires-Python: >=3.10

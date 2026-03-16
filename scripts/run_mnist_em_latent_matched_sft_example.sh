@@ -1,0 +1,11 @@
+python -m ttt_reward_models.cli_em_mnist_latent_matched_sft \
+  --generator_ckpt outputs/mnist_gan/mnist_gan_final.pt \
+  --data_root ./data \
+  --output_dir outputs/mnist_em_latent_matched_sft \
+  --em_rounds 3 \
+  --assign_max_items 256 \
+  --assign_steps 200 \
+  --assign_lr 5e-2 \
+  --sft_epochs 2 \
+  --sft_batch_size 64 \
+  --sft_lr 1e-4

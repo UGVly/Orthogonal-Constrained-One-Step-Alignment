@@ -27,7 +27,6 @@ dependencies = [
   "fairscale",
   "clint",
   "requests",
-  "clip>=0.2.0",
 ]
 
 [tool.setuptools]
@@ -35,7 +34,3 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
-
-[[tool.uv.index]]
-url = "https://pypi.tuna.tsinghua.edu.cn/simple"
-default = true

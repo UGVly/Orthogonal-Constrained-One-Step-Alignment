@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from pathlib import Path
 from typing import Dict, Optional
 
 import torch
@@ -5,6 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from transformers import AutoModel, AutoProcessor
 
+from .paths import get_default_pickscore_root
 from .utils import freeze_module
 
 
@@ -21,20 +25,37 @@ class PickScoreReward(nn.Module):
     ):
         super().__init__()
         self.prompt = prompt
+
+        if pickscore_model_id == "yuvalkirstain/PickScore_v1":
+            default_local = get_default_pickscore_root()
+            if default_local.exists():
+                pickscore_model_id = str(default_local)
+        elif not Path(pickscore_model_id).exists() and pickscore_model_id.startswith((".", "/", "models")):
+            raise FileNotFoundError(
+                f"PickScore checkpoint directory was not found: {pickscore_model_id}. "
+                "Run `bash scripts/download_models.sh --only PickScore_v1` first, or pass a valid Hugging Face repo id."
+            )
         self.pickscore_model_id = pickscore_model_id
+        local_files_only = Path(self.pickscore_model_id).exists()
 
         global _GLOBAL_PICKSCORE_MODEL, _GLOBAL_PICKSCORE_PROCESSOR, _GLOBAL_PICKSCORE_ID
-        if _GLOBAL_PICKSCORE_MODEL is None or _GLOBAL_PICKSCORE_ID != pickscore_model_id:
-            _GLOBAL_PICKSCORE_MODEL = AutoModel.from_pretrained(pickscore_model_id).eval()
-            _GLOBAL_PICKSCORE_PROCESSOR = AutoProcessor.from_pretrained(pickscore_model_id)
-            _GLOBAL_PICKSCORE_ID = pickscore_model_id
+        if _GLOBAL_PICKSCORE_MODEL is None or _GLOBAL_PICKSCORE_ID != self.pickscore_model_id:
+            _GLOBAL_PICKSCORE_MODEL = AutoModel.from_pretrained(
+                self.pickscore_model_id,
+                local_files_only=local_files_only,
+            ).eval()
+            _GLOBAL_PICKSCORE_PROCESSOR = AutoProcessor.from_pretrained(
+                self.pickscore_model_id,
+                local_files_only=local_files_only,
+            )
+            _GLOBAL_PICKSCORE_ID = self.pickscore_model_id
 
         self.model = _GLOBAL_PICKSCORE_MODEL
         self.processor = _GLOBAL_PICKSCORE_PROCESSOR
         freeze_module(self.model)
 
         image_processor = self.processor.image_processor
-        size_cfg = image_processor.size
+        size_cfg = getattr(image_processor, "crop_size", None) or image_processor.size
         if isinstance(size_cfg, dict):
             if "shortest_edge" in size_cfg:
                 self.image_size = int(size_cfg["shortest_edge"])
@@ -58,24 +79,8 @@ class PickScoreReward(nn.Module):
         )
         self.register_buffer("text_input_ids", text_inputs["input_ids"], persistent=False)
         self.register_buffer("text_attention_mask", text_inputs["attention_mask"], persistent=False)
-        embed_dim = getattr(self.model.config, "projection_dim", 768)
+        embed_dim = int(getattr(self.model.config, "projection_dim", 768))
         self.register_buffer("text_features", torch.zeros(1, embed_dim), persistent=False)
-
-    @staticmethod
-    def _unwrap_features(feats) -> torch.Tensor:
-        if isinstance(feats, torch.Tensor):
-            return feats
-        if hasattr(feats, "text_embeds") and feats.text_embeds is not None:
-            return feats.text_embeds
-        if hasattr(feats, "image_embeds") and feats.image_embeds is not None:
-            return feats.image_embeds
-        if hasattr(feats, "pooler_output") and feats.pooler_output is not None:
-            return feats.pooler_output
-        if hasattr(feats, "last_hidden_state") and feats.last_hidden_state is not None:
-            return feats.last_hidden_state[:, 0]
-        if isinstance(feats, (tuple, list)) and len(feats) > 0 and isinstance(feats[0], torch.Tensor):
-            return feats[0]
-        raise TypeError(f"Cannot unwrap features from object of type {type(feats)!r}")
 
     def set_device(self, device: str):
         self.to(device)
@@ -84,7 +89,6 @@ class PickScoreReward(nn.Module):
                 input_ids=self.text_input_ids.to(device),
                 attention_mask=self.text_attention_mask.to(device),
             )
-            text_features = self._unwrap_features(text_features)
             text_features = F.normalize(text_features.float(), dim=-1)
             self.text_features.copy_(text_features)
         return self
@@ -103,10 +107,15 @@ class PickScoreReward(nn.Module):
     def forward(self, images_01: torch.Tensor) -> Dict[str, torch.Tensor]:
         x = self.preprocess(images_01.float())
         image_features = self.model.get_image_features(pixel_values=x)
-        image_features = self._unwrap_features(image_features)
         image_features = F.normalize(image_features.float(), dim=-1)
-        pickscore = (image_features * self.text_features).sum(dim=-1)
+        cosine = (image_features * self.text_features).sum(dim=-1)
+        logit_scale = getattr(self.model, "logit_scale", None)
+        if logit_scale is not None:
+            pickscore = logit_scale.exp().float() * cosine
+        else:
+            pickscore = cosine
         return {
             "reward": pickscore,
             "pickscore": pickscore,
+            "pickscore_cosine": cosine,
         }

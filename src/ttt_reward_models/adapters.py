@@ -26,14 +26,7 @@ class PatchOrthogonalNoise(nn.Module):
 
     def orthogonal_matrix(self) -> torch.Tensor:
         skew = self.raw - self.raw.transpose(0, 1)
-        # q = torch.matrix_exp(skew)
-
-        # Use Cayley transform to get orthogonal matrix from skew-symmetric
-        # Q = (I - S) @ inv(I + S)
-        
-        skew = self.raw - self.raw.transpose(0, 1)
-        I = torch.eye(skew.size(0), device=skew.device, dtype=skew.dtype)
-        q = torch.linalg.solve(I + skew, I - skew)
+        q = torch.matrix_exp(skew)
         return q
 
     def forward(self, eps: torch.Tensor) -> torch.Tensor:

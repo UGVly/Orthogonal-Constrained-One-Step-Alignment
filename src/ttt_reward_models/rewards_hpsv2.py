@@ -101,7 +101,7 @@ class HPSv2Reward(nn.Module):
             return ensure_hpsv2_checkpoint(self.hps_root, hps_version=self.hps_version)
         raise FileNotFoundError(
             'HPSv2 checkpoint was not found under the project directory. '
-            'Run `python scripts/download_reward_assets.py --which hpsv2` first, '
+            'Run `bash scripts/download_models.sh --only HPSv2` first, '
             'or pass --hps_auto_download.'
         )
 

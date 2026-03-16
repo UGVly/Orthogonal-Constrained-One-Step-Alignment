@@ -1,7 +1,5 @@
 import argparse
 
-from .runners_sft import train_latent_matched_sft
-
 
 def main() -> None:
     parser = argparse.ArgumentParser(description='Fine-tune a one-step SDXL Turbo model on assigned noises instead of random noises.')
@@ -26,6 +24,8 @@ def main() -> None:
     parser.add_argument('--num_workers', type=int, default=0)
     parser.add_argument('--save_every_epochs', type=int, default=1)
     args = parser.parse_args()
+    from .runners_sft import train_latent_matched_sft
+
 
     train_latent_matched_sft(
         manifest_path=args.manifest_path,

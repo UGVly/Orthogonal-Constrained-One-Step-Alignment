@@ -1,7 +1,5 @@
 import argparse
 
-from .runners import run_test_time_oft_pickscore
-
 
 def main() -> None:
     parser = argparse.ArgumentParser()
@@ -22,6 +20,7 @@ def main() -> None:
     parser.add_argument("--save_every", type=int, default=1)
     parser.add_argument("--print_eigs_every", type=int, default=1)
     args = parser.parse_args()
+    from .runners import run_test_time_oft_pickscore
 
     run_test_time_oft_pickscore(
         args.prompt,

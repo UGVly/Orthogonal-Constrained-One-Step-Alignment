@@ -1,7 +1,5 @@
 import argparse
 
-from .runners_sft import build_assigned_noise_dataset
-
 
 def main() -> None:
     parser = argparse.ArgumentParser(description='Build a latent-matched SFT dataset from pairs.jsonl by assigning the best noise to each sample.')
@@ -30,6 +28,8 @@ def main() -> None:
     parser.add_argument('--save_every', type=int, default=1)
     parser.add_argument('--print_eigs_every', type=int, default=1)
     args = parser.parse_args()
+    from .runners_sft import build_assigned_noise_dataset
+
 
     build_assigned_noise_dataset(
         data_root=args.data_root,

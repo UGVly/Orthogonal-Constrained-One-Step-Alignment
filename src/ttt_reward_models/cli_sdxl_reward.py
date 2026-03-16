@@ -1,7 +1,5 @@
 import argparse
 
-from .runners import run_test_time_oft
-
 
 def main() -> None:
     parser = argparse.ArgumentParser()
@@ -34,6 +32,7 @@ def main() -> None:
         help="Local Hugging Face CLIP snapshot dir",
     )
     args = parser.parse_args()
+    from .runners import run_test_time_oft
 
     run_test_time_oft(
         args.prompt,

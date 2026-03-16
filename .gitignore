@@ -18,5 +18,6 @@ ouputs/
 third_party_weights/
 datasets/
 datas/
+data/
 
 *.zip

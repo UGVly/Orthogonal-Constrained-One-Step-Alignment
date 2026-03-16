@@ -1,7 +1,5 @@
 import argparse
 
-from .runners_sft import run_em_latent_matched_sft
-
 
 def main() -> None:
     parser = argparse.ArgumentParser(description='Alternating latent assignment + one-step SFT.')
@@ -27,6 +25,7 @@ def main() -> None:
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--variant', type=str, default='fp16')
     args = parser.parse_args()
+    from .runners_sft import run_em_latent_matched_sft
 
     run_em_latent_matched_sft(
         data_root=args.data_root,

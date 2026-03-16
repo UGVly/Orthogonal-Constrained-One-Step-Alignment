@@ -1,11 +1,17 @@
+from __future__ import annotations
+
 import os
-import shutil
 from pathlib import Path
 from typing import Optional, Tuple
 
 from huggingface_hub import hf_hub_download
 
-from .paths import get_default_hpsv2_root, get_default_imagereward_root
+from .paths import (
+    get_default_hpsv2_root,
+    get_default_imagereward_root,
+    get_hpsv2_roots,
+    get_imagereward_roots,
+)
 
 
 class DownloadError(RuntimeError):
@@ -25,10 +31,12 @@ def _search_one(root: Path, name: str) -> Optional[Path]:
 
 
 def find_imagereward_assets(root: Optional[str | Path] = None) -> Tuple[Optional[Path], Optional[Path]]:
-    base = Path(root) if root is not None else get_default_imagereward_root()
-    ckpt = _search_one(base, 'ImageReward.pt')
-    med = _search_one(base, 'med_config.json')
-    return ckpt, med
+    for base in get_imagereward_roots(root):
+        ckpt = _search_one(base, 'ImageReward.pt')
+        med = _search_one(base, 'med_config.json')
+        if ckpt is not None and med is not None:
+            return ckpt, med
+    return None, None
 
 
 def ensure_imagereward_assets(
@@ -37,7 +45,7 @@ def ensure_imagereward_assets(
     use_modelscope: bool = True,
 ) -> Tuple[Path, Path]:
     base = _ensure_dir(Path(root) if root is not None else get_default_imagereward_root())
-    ckpt, med = find_imagereward_assets(base)
+    ckpt, med = find_imagereward_assets(root)
     if ckpt is not None and med is not None:
         return ckpt, med
 
@@ -57,7 +65,6 @@ def ensure_imagereward_assets(
         except Exception as exc:
             errors.append(f'ModelScope download failed: {exc}')
 
-    # Fallback to the official Hugging Face files, still stored inside the project directory.
     try:
         ckpt_path = Path(
             hf_hub_download(
@@ -86,6 +93,17 @@ _HPS_FILE_MAP = {
 }
 
 
+def find_hpsv2_checkpoint(root: Optional[str | Path] = None, *, hps_version: str = 'v2.1') -> Optional[Path]:
+    if hps_version not in _HPS_FILE_MAP:
+        raise ValueError(f'Unsupported HPS version: {hps_version}')
+    filename = _HPS_FILE_MAP[hps_version]
+    for base in get_hpsv2_roots(root):
+        local_path = _search_one(base, filename)
+        if local_path is not None:
+            return local_path
+    return None
+
+
 def ensure_hpsv2_checkpoint(
     root: Optional[str | Path] = None,
     *,
@@ -94,12 +112,12 @@ def ensure_hpsv2_checkpoint(
     if hps_version not in _HPS_FILE_MAP:
         raise ValueError(f'Unsupported HPS version: {hps_version}')
 
-    base = _ensure_dir(Path(root) if root is not None else get_default_hpsv2_root())
-    filename = _HPS_FILE_MAP[hps_version]
-    local_path = _search_one(base, filename)
+    local_path = find_hpsv2_checkpoint(root, hps_version=hps_version)
     if local_path is not None:
         return local_path
 
+    base = _ensure_dir(Path(root) if root is not None else get_default_hpsv2_root())
+    filename = _HPS_FILE_MAP[hps_version]
     path = Path(
         hf_hub_download(
             repo_id='xswu/HPSv2',

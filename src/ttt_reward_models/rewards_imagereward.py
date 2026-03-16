@@ -91,7 +91,7 @@ class ImageRewardReward(nn.Module):
 
         raise FileNotFoundError(
             'ImageReward weights were not found under the project directory. '
-            'Run `python scripts/download_reward_assets.py --which imagereward` first, '
+            'Run `bash scripts/download_models.sh --only ImageReward` first, '
             'or pass --imagereward_auto_download.'
         )
 

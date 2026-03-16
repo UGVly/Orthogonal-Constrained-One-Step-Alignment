@@ -1,7 +1,5 @@
 import argparse
 
-from .runners import read_prompts, run_test_time_oft_pickscore_for_prompts, write_pickscore_batch_metrics
-
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate images from a prompt list using OneStep OFT + PickScore.")
@@ -26,6 +24,8 @@ def main() -> None:
     parser.add_argument("--save_every", type=int, default=1)
     parser.add_argument("--print_eigs_every", type=int, default=1)
     args = parser.parse_args()
+    from .runners import read_prompts, run_test_time_oft_pickscore_for_prompts, write_pickscore_batch_metrics
+
 
     prompts = read_prompts(args.prompt_file)
     if not prompts:
